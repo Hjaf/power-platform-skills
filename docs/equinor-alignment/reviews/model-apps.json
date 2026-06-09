@@ -1,13 +1,13 @@
 {
   "pluginName": "model-apps",
-  "reviewDate": "2026-05-22",
+  "reviewDate": "2026-06-09",
   "reviewer": "GitHub Copilot",
   "publicationStatus": "defer",
   "ownership": {
     "owner": "not assigned",
     "supportChannel": "not assigned",
     "upstreamSource": "microsoft/power-platform-skills/plugins/model-apps",
-    "upstreamVersion": "2.1.0"
+    "upstreamVersion": "2.2.0"
   },
   "scope": {
     "summary": "Builds and deploys Power Apps model-driven app generative pages, creates Dataverse entities when needed, creates model-driven apps, generates React and Fluent UI code, deploys via PAC CLI, and verifies in browser.",
@@ -153,6 +153,11 @@
   ],
   "evidence": [
     {
+      "type": "external-source",
+      "reference": "https://github.com/microsoft/power-platform-skills/compare/2923950..9258fd9",
+      "summary": "Re-reviewed after upstream sync 2026-06-09 (v2.1->v2.2, commits c63949d and ff0d191). Adds an automated eval suite (run-layer-1/2 TAP runners + 10 fixtures), new local-dev tooling scripts (capture-fixture.js using node:child_process spawnSync to run eval runners; generate-page-manifest.js writing local package.json/genpage.d.ts), supported-dependencies.md, docs/architecture.md, samples 11 (kanban DnD) and 12 (dialog/overlay confinement), and rules 16-18 confining portalled Fluent surfaces. No new production-system interaction: new scripts are local dev/eval tooling. Blockers unchanged."
+    },
+    {
       "type": "file",
       "reference": "plugins/model-apps/README.md",
       "summary": "Documents Dataverse entity creation, app creation, React and Fluent UI code generation, deployment, and browser verification."
@@ -168,5 +173,5 @@
       "summary": "Contains Node.js scripts that require security and behavior review before publication."
     }
   ],
-  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists."
+  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists. Upstream v2.2.0 synced 2026-06-09 adds an automated eval suite, two new local-dev scripts (capture-fixture.js, generate-page-manifest.js), supported-dependencies guidance, and dialog/overlay confinement rules. The new scripts are local dev/eval tooling with no new production interaction, but enlarge the script surface that still requires formal review before publication."
 }

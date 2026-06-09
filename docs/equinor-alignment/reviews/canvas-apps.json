@@ -1,6 +1,6 @@
 {
   "pluginName": "canvas-apps",
-  "reviewDate": "2026-05-22",
+  "reviewDate": "2026-06-09",
   "reviewer": "GitHub Copilot",
   "publicationStatus": "defer",
   "ownership": {
@@ -129,6 +129,11 @@
   ],
   "evidence": [
     {
+      "type": "external-source",
+      "reference": "https://github.com/microsoft/power-platform-skills/compare/2923950..9258fd9",
+      "summary": "Re-reviewed after upstream sync 2026-06-09 (commit 08287fe). configure-canvas-mcp skill bumped to 2.1.0, adding optional auth_flow ('broker'|'browser') and login_hint parameters to the canvas-authoring MCP connect tool. Defaults are unchanged (first signed-in user, default auth flow); parameters are opt-in only when the user states a preference. No new scripts, dependencies, or production interaction. Blockers unchanged."
+    },
+    {
       "type": "file",
       "reference": "plugins/canvas-apps/README.md",
       "summary": "Documents Canvas Authoring MCP tools, coauthoring, connector discovery, and security notes."
@@ -139,5 +144,5 @@
       "summary": "Registers Canvas Authoring MCP through dnx, prerelease package, and NuGet source."
     }
   ],
-  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists."
+  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists. Upstream sync 2026-06-09 added optional auth_flow/login_hint parameters to the Canvas Authoring MCP connect tool (configure-canvas-mcp v2.1.0); broker remains the default and browser sign-in is opt-in, so MCP governance posture is unchanged."
 }

@@ -1,6 +1,6 @@
 {
   "pluginName": "model-apps",
-  "reviewDate": "2026-06-09",
+  "reviewDate": "2026-06-30",
   "reviewer": "GitHub Copilot",
   "publicationStatus": "defer",
   "ownership": {
@@ -133,9 +133,9 @@
   },
   "publication": {
     "targetRepository": "equinor/powerplatform recommended, not confirmed",
-    "copilotManifest": false,
+    "copilotManifest": true,
     "claudeManifest": true,
-    "versionsSynchronized": false,
+    "versionsSynchronized": true,
     "variaCatalogRequired": true,
     "techDocsRequired": true,
     "architectureContractLinkRequired": true,
@@ -148,10 +148,14 @@
     "Production-system interaction is possible by default through Dataverse schema creation, app creation, deployment, and browser verification workflows.",
     "Data classification ceiling is not documented.",
     "EDS position is unresolved because generated UI currently uses Fluent UI V9.",
-    "Technology Radar status is unknown for Fluent UI and Playwright.",
-    "GitHub Copilot marketplace manifest is missing."
+    "Technology Radar status is unknown for Fluent UI and Playwright."
   ],
   "evidence": [
+    {
+      "type": "external-source",
+      "reference": "https://github.com/microsoft/power-platform-skills/compare/9258fd9..0188a8b",
+      "summary": "Re-reviewed after upstream sync 2026-06-30 (model-apps v2.2.0). Added Open Plugins metadata (.plugin/plugin.json + marketplace entry), bundled report-issue workflow content, and PLUGIN_ROOT-aligned helper text in local-dev/eval helpers. No new production interaction beyond the 2026-06-09 review. Copilot manifest blocker cleared; remaining blockers unchanged."
+    },
     {
       "type": "external-source",
       "reference": "https://github.com/microsoft/power-platform-skills/compare/2923950..9258fd9",
@@ -173,5 +177,5 @@
       "summary": "Contains Node.js scripts that require security and behavior review before publication."
     }
   ],
-  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists. Upstream v2.2.0 synced 2026-06-09 adds an automated eval suite, two new local-dev scripts (capture-fixture.js, generate-page-manifest.js), supported-dependencies guidance, and dialog/overlay confinement rules. The new scripts are local dev/eval tooling with no new production interaction, but enlarge the script surface that still requires formal review before publication."
+  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists. Upstream v2.2.0 synced 2026-06-09 adds an automated eval suite, two new local-dev scripts (capture-fixture.js, generate-page-manifest.js), supported-dependencies guidance, and dialog/overlay confinement rules. The new scripts are local dev/eval tooling with no new production interaction, but enlarge the script surface that still requires formal review before publication. Upstream sync 2026-06-30 added Open Plugins metadata and bundled report-issue workflow content; the Copilot manifest blocker is now cleared."
 }

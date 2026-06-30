@@ -1,14 +1,10 @@
-If you discover a security vulnerability in this project, please follow the steps below to report it.
+If you discover a security vulnerability in this project, do not report it through public GitHub issues.
 
-### For "non-critical" issues
+### Report the issue
 
-- **Alternative A:**
-Create a GitHub issue for the vulnerability. Avoid putting sensitive information in the issue.
-
-- **Alternative B:**
 Send an email to the project's maintainer at [Hjalmar Otto Fjøsne](mailto:hjaf@equinor.com) describing the issue.
 
-### For "critical" and time sensitive issues
+### Critical or time-sensitive issues
 
 Phone the Equinor helpdesk:
 

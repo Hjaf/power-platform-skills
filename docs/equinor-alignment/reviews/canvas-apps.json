@@ -1,6 +1,6 @@
 {
   "pluginName": "canvas-apps",
-  "reviewDate": "2026-06-09",
+  "reviewDate": "2026-06-30",
   "reviewer": "GitHub Copilot",
   "publicationStatus": "defer",
   "ownership": {
@@ -109,9 +109,9 @@
   },
   "publication": {
     "targetRepository": "equinor/powerplatform recommended, not confirmed",
-    "copilotManifest": false,
+    "copilotManifest": true,
     "claudeManifest": true,
-    "versionsSynchronized": false,
+    "versionsSynchronized": true,
     "variaCatalogRequired": true,
     "techDocsRequired": true,
     "architectureContractLinkRequired": true,
@@ -124,10 +124,14 @@
     "MCP server is installed through dnx with prerelease package use and no explicit version pinning.",
     "Production-system interaction is possible by default through live coauthoring and authoring service access.",
     "Dependencies and environment prerequisites are not fully documented.",
-    "Technology Radar status is unknown for .NET in this context.",
-    "GitHub Copilot marketplace manifest is missing."
+    "Technology Radar status is unknown for .NET in this context."
   ],
   "evidence": [
+    {
+      "type": "external-source",
+      "reference": "https://github.com/microsoft/power-platform-skills/compare/9258fd9..0188a8b",
+      "summary": "Re-reviewed after upstream sync 2026-06-30 (canvas-apps v2.1.0). Added Open Plugins metadata (.plugin/plugin.json + marketplace entry) and bundled report-issue workflow content. No new scripts, hooks, or production interaction. The fork keeps its existing flat .mcp.json form; Copilot manifest blocker cleared and remaining blockers unchanged."
+    },
     {
       "type": "external-source",
       "reference": "https://github.com/microsoft/power-platform-skills/compare/2923950..9258fd9",
@@ -144,5 +148,5 @@
       "summary": "Registers Canvas Authoring MCP through dnx, prerelease package, and NuGet source."
     }
   ],
-  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists. Upstream sync 2026-06-09 added optional auth_flow/login_hint parameters to the Canvas Authoring MCP connect tool (configure-canvas-mcp v2.1.0); broker remains the default and browser sign-in is opt-in, so MCP governance posture is unchanged."
+  "notes": "Initial review record only. This record intentionally defers publication until detailed review evidence exists. Upstream sync 2026-06-09 added optional auth_flow/login_hint parameters to the Canvas Authoring MCP connect tool (configure-canvas-mcp v2.1.0); broker remains the default and browser sign-in is opt-in, so MCP governance posture is unchanged. Upstream sync 2026-06-30 added Open Plugins metadata and bundled report-issue workflow content with no new runtime behavior."
 }

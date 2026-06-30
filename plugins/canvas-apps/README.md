@@ -1,6 +1,6 @@
 # Canvas Apps Plugin
 
-Build Power Apps Canvas Apps with your coding agent as coauthor. This plugin connects AI coding assistants to the Power Apps authoring service over stdio, enabling them to validate .pa.yaml files, browse available controls and their properties, discover APIs/connectors and data sources, and sync app state from live coauthoring sessions. 
+Build Power Apps Canvas Apps with your coding agent as coauthor. This plugin connects AI coding assistants to the Power Apps authoring service over stdio, enabling them to validate .pa.yaml files, browse available controls and their properties, discover APIs/connectors and data sources, and sync app state from live coauthoring sessions.
 
 > **Preview:** This plugin is currently in [preview](https://www.microsoft.com/en-us/business-applications/legal/supp-powerplatform-preview/). These features are available before official release for customers to provide feedback.
 
@@ -13,7 +13,7 @@ Build Power Apps Canvas Apps with your coding agent as coauthor. This plugin con
 ### From the marketplace
 
 ```bash
-/plugin marketplace add microsoft/power-platform-skills
+/plugin marketplace add equinor/power-platform-skills
 /plugin install canvas-apps@power-platform-skills
 ```
 

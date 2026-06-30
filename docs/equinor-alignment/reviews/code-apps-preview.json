@@ -1,6 +1,6 @@
 {
   "pluginName": "code-apps-preview",
-  "reviewDate": "2026-05-28",
+  "reviewDate": "2026-06-30",
   "reviewer": "GitHub Copilot",
   "publicationStatus": "controlled-pilot",
   "ownership": {
@@ -118,7 +118,7 @@
     "targetRepository": "equinor/powerplatform recommended, not confirmed",
     "copilotManifest": true,
     "claudeManifest": true,
-    "versionsSynchronized": false,
+    "versionsSynchronized": true,
     "variaCatalogRequired": true,
     "techDocsRequired": true,
     "architectureContractLinkRequired": true,
@@ -127,6 +127,11 @@
   },
   "blockers": [],
   "evidence": [
+    {
+      "type": "external-source",
+      "reference": "https://github.com/microsoft/power-platform-skills/compare/9258fd9..0188a8b",
+      "summary": "Re-reviewed after upstream sync 2026-06-30 (code-apps-preview v1.0.0). Added Open Plugins metadata (.plugin/plugin.json + marketplace entry) and bundled report-issue workflow content. Upstream generic theming/documentation changes were not taken where they would remove Equinor EDS guidance; fork-specific EDS guardrails remain in README, shared instructions, and create/deploy skill docs. No new scripts, hooks, or production interaction."
+    },
     {
       "type": "file",
       "reference": "plugins/code-apps/README.md",
@@ -183,5 +188,5 @@
       "summary": "Owner clarifications: (1) DLP mapping deferred — owner states DLP is somewhat irrelevant in this context; plugin review schema will be restructured later. Blocker removed. (2) GitHub Copilot CLI confirmed to work same way as Claude CLI — same manifest serves both. copilotManifest set to true. (3) Plugin name code-apps-preview to stay as-is (mirrors upstream). All blockers cleared. Plugin eligible for controlled-pilot with no remaining hard blockers."
     }
   ],
-  "notes": "Skills and agents reviewed 2026-05-22. Production interaction blocked (all deploys require confirmation — intentionally scoped to dev; test/prod promotion planned via a separate CI/CD skill or agent). EDS integrated into generation workflow. Re-reviewed 2026-05-23: owner assigned, zones clarified (Green/Yellow/Red, primarily Red), Copilot Studio excluded from scope, fork references updated. Upstream sync 2026-05-23: EDS-removing upstream changes deferred; Equinor guardrails preserved. Re-reviewed 2026-05-28: Vite now Adopt, all tech radar items resolved, status upgraded to controlled-pilot. Owner answers 2026-05-28: DLP deferred (schema restructure planned), Copilot CLI confirmed same mechanism as Claude CLI, plugin name stays code-apps-preview (mirrors upstream). All blockers cleared. Next step toward ready-for-internal-pilot: successful end-to-end install test using correct plugin name, and rollback documentation."
+  "notes": "Skills and agents reviewed 2026-05-22. Production interaction blocked (all deploys require confirmation — intentionally scoped to dev; test/prod promotion planned via a separate CI/CD skill or agent). EDS integrated into generation workflow. Re-reviewed 2026-05-23: owner assigned, zones clarified (Green/Yellow/Red, primarily Red), Copilot Studio excluded from scope, fork references updated. Upstream sync 2026-05-23: EDS-removing upstream changes deferred; Equinor guardrails preserved. Re-reviewed 2026-05-28: Vite now Adopt, all tech radar items resolved, status upgraded to controlled-pilot. Owner answers 2026-05-28: DLP deferred (schema restructure planned), Copilot CLI confirmed same mechanism as Claude CLI, plugin name stays code-apps-preview (mirrors upstream). Upstream sync 2026-06-30 added Open Plugins metadata and bundled report-issue workflow content; Equinor EDS guardrails remain intentionally preserved. All blockers cleared. Next step toward ready-for-internal-pilot: successful end-to-end install test using correct plugin name, and rollback documentation."
 }

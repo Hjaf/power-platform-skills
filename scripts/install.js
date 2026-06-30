@@ -7,7 +7,7 @@
  *
  * Usage:
  *   node scripts/install.js                                              (from local clone, user scope)
- *   node scripts/install.js --scope project                              (install into .claude/plugins/ in cwd)
+ *   node scripts/install.js --scope project                              (install into .github/ in cwd)
  *   curl -fsSL https://raw.githubusercontent.com/equinor/power-platform-skills/main/scripts/install.js | node
  */
 
@@ -31,10 +31,13 @@ const HOME = os.homedir();
 //                 If omitted, installs all plugins from the marketplace.
 const args = process.argv.slice(2);
 const scopeIdx = args.indexOf("--scope");
-const SCOPE = scopeIdx !== -1 && args[scopeIdx + 1] ? args[scopeIdx + 1] : "user";
+const SCOPE =
+  scopeIdx !== -1 && args[scopeIdx + 1] ? args[scopeIdx + 1] : "user";
 
 if (!["user", "project"].includes(SCOPE)) {
-  console.error(`Invalid scope: "${SCOPE}". Use --scope user or --scope project.`);
+  console.error(
+    `Invalid scope: "${SCOPE}". Use --scope user or --scope project.`,
+  );
   process.exit(1);
 }
 
@@ -44,7 +47,12 @@ const SELECTED_PLUGINS = [];
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--plugin" && args[i + 1]) {
     const val = args[i + 1];
-    SELECTED_PLUGINS.push(...val.split(",").map((s) => s.trim()).filter(Boolean));
+    SELECTED_PLUGINS.push(
+      ...val
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
     i++; // skip the value
   }
 }
@@ -118,21 +126,39 @@ function httpsGet(url) {
   return new Promise((resolve, reject) => {
     const request = (target) => {
       https
-        .get(target, { headers: { "User-Agent": "power-platform-skills-installer" } }, (res) => {
-          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-            return request(res.headers.location);
-          }
-          if (res.statusCode !== 200) {
-            return reject(new Error(`HTTP ${res.statusCode} from ${target}`));
-          }
-          let data = "";
-          res.on("data", (chunk) => (data += chunk));
-          res.on("end", () => resolve(data));
-        })
+        .get(
+          target,
+          { headers: { "User-Agent": "power-platform-skills-installer" } },
+          (res) => {
+            if (
+              res.statusCode >= 300 &&
+              res.statusCode < 400 &&
+              res.headers.location
+            ) {
+              return request(res.headers.location);
+            }
+            if (res.statusCode !== 200) {
+              return reject(new Error(`HTTP ${res.statusCode} from ${target}`));
+            }
+            let data = "";
+            res.on("data", (chunk) => (data += chunk));
+            res.on("end", () => resolve(data));
+          },
+        )
         .on("error", reject);
     };
     request(url);
   });
+}
+
+function parseMarketplaceManifest(raw) {
+  const manifest = JSON.parse(raw);
+  if (manifest.name !== MARKETPLACE_NAME) {
+    throw new Error(
+      `manifest name is '${manifest.name || "(missing)"}', expected '${MARKETPLACE_NAME}'`,
+    );
+  }
+  return manifest;
 }
 
 // ── Auto-update ──────────────────────────────────────────────
@@ -142,7 +168,10 @@ function enableAutoUpdate(configFile, getMarketplaces) {
   try {
     const data = JSON.parse(fs.readFileSync(configFile, "utf8"));
     const marketplaces = getMarketplaces(data);
-    if (marketplaces?.[MARKETPLACE_NAME] && !marketplaces[MARKETPLACE_NAME].autoUpdate) {
+    if (
+      marketplaces?.[MARKETPLACE_NAME] &&
+      !marketplaces[MARKETPLACE_NAME].autoUpdate
+    ) {
       marketplaces[MARKETPLACE_NAME].autoUpdate = true;
       fs.writeFileSync(configFile, JSON.stringify(data, null, 2) + "\n");
       ok("Auto-update enabled");
@@ -160,25 +189,54 @@ function enableAutoUpdate(configFile, getMarketplaces) {
 
 // ── Marketplace loader ────────────────────────────────────────
 async function loadMarketplace() {
-  const scriptDir = process.argv[1] ? path.dirname(path.resolve(process.argv[1])) : process.cwd();
+  const scriptDir = process.argv[1]
+    ? path.dirname(path.resolve(process.argv[1]))
+    : process.cwd();
   // Script lives in scripts/, so the repo root is one level up
   const repoRoot = path.resolve(scriptDir, "..");
-  const localFile = path.join(repoRoot, ".claude-plugin", "marketplace.json");
+  const roots = [...new Set([repoRoot, process.cwd()])];
+  const marketplacePaths = [
+    "marketplace.json",
+    path.join(".plugin", "marketplace.json"),
+    path.join(".claude-plugin", "marketplace.json"),
+  ];
+  const errors = [];
 
-  if (fs.existsSync(localFile)) {
-    return { manifest: JSON.parse(fs.readFileSync(localFile, "utf8")), repoRoot };
-  }
-
-  // Also check cwd (handles running from repo root or piped download)
-  const cwdRoot = process.cwd();
-  const cwdFile = path.join(cwdRoot, ".claude-plugin", "marketplace.json");
-  if (fs.existsSync(cwdFile)) {
-    return { manifest: JSON.parse(fs.readFileSync(cwdFile, "utf8")), repoRoot: cwdRoot };
+  for (const root of roots) {
+    for (const relativePath of marketplacePaths) {
+      const filePath = path.join(root, relativePath);
+      if (fs.existsSync(filePath)) {
+        try {
+          return {
+            manifest: parseMarketplaceManifest(
+              fs.readFileSync(filePath, "utf8"),
+            ),
+            repoRoot: root,
+          };
+        } catch (err) {
+          errors.push(`${filePath}: ${err.message}`);
+        }
+      }
+    }
   }
 
   info("Fetching marketplace manifest from GitHub...");
-  const raw = await httpsGet(`${GITHUB_RAW}/.claude-plugin/marketplace.json`);
-  return { manifest: JSON.parse(raw), repoRoot: null };
+  for (const relativePath of [
+    "marketplace.json",
+    ".plugin/marketplace.json",
+    ".claude-plugin/marketplace.json",
+  ]) {
+    try {
+      const raw = await httpsGet(`${GITHUB_RAW}/${relativePath}`);
+      return { manifest: parseMarketplaceManifest(raw), repoRoot: null };
+    } catch (err) {
+      errors.push(`${relativePath}: ${err.message}`);
+    }
+  }
+
+  throw new Error(
+    `Could not load marketplace manifest. Tried: ${errors.join("; ")}`,
+  );
 }
 
 // ── Claude Code installation ──────────────────────────────────
@@ -201,7 +259,9 @@ function installClaude(plugins) {
 
   // 2. Update marketplace
   info("Updating marketplace...");
-  const updateResult = run(`claude plugin marketplace update "${MARKETPLACE_NAME}"`);
+  const updateResult = run(
+    `claude plugin marketplace update "${MARKETPLACE_NAME}"`,
+  );
   if (updateResult.ok) {
     ok("Marketplace updated");
   } else {
@@ -209,14 +269,19 @@ function installClaude(plugins) {
   }
 
   // 3. Enable auto-update (CLI does not set this)
-  const knownPath = path.join(HOME, ".claude", "plugins", "known_marketplaces.json");
+  const knownPath = path.join(
+    HOME,
+    ".claude",
+    "plugins",
+    "known_marketplaces.json",
+  );
   enableAutoUpdate(knownPath, (data) => data);
 
   // 4. Install each plugin via CLI
   for (const plugin of plugins) {
     info(`Installing ${plugin}...`);
     const installResult = run(
-      `claude plugin install "${plugin}@${MARKETPLACE_NAME}" --scope ${SCOPE}`
+      `claude plugin install "${plugin}@${MARKETPLACE_NAME}" --scope ${SCOPE}`,
     );
     if (installResult.ok) {
       ok(`${plugin} installed`);
@@ -292,12 +357,16 @@ async function installProjectScoped(repoRoot, plugins, pluginSourceMap) {
       // 1. Copy agent .md files as .agent.md (namespaced with plugin prefix)
       const agentsPath = path.join(pluginPath, "agents");
       if (fs.existsSync(agentsPath)) {
-        const agentFiles = fs.readdirSync(agentsPath).filter((f) => f.endsWith(".md"));
+        const agentFiles = fs
+          .readdirSync(agentsPath)
+          .filter((f) => f.endsWith(".md"));
         for (const file of agentFiles) {
           // Skip non-agent assets (e.g. assets/ subdirectory)
           const filePath = path.join(agentsPath, file);
           if (!fs.statSync(filePath).isFile()) continue;
-          const targetName = file.endsWith(".agent.md") ? file : file.replace(/\.md$/, ".agent.md");
+          const targetName = file.endsWith(".agent.md")
+            ? file
+            : file.replace(/\.md$/, ".agent.md");
           fs.copyFileSync(filePath, path.join(targetAgents, targetName));
           agentCount++;
         }
@@ -306,7 +375,10 @@ async function installProjectScoped(repoRoot, plugins, pluginSourceMap) {
       // 2. Create instruction file from AGENTS.md
       const agentsMd = path.join(pluginPath, "AGENTS.md");
       if (fs.existsSync(agentsMd)) {
-        const instructionFile = path.join(targetInstructions, `${pluginName}.instructions.md`);
+        const instructionFile = path.join(
+          targetInstructions,
+          `${pluginName}.instructions.md`,
+        );
         const content = fs.readFileSync(agentsMd, "utf8");
         const withFrontmatter = `---\napplyTo: "**"\ndescription: "${pluginName} plugin instructions"\n---\n\n${content}`;
         fs.writeFileSync(instructionFile, withFrontmatter);
@@ -316,7 +388,8 @@ async function installProjectScoped(repoRoot, plugins, pluginSourceMap) {
       // 3. Copy skills (each skill is a subdirectory with SKILL.md + references/)
       const skillsPath = path.join(pluginPath, "skills");
       if (fs.existsSync(skillsPath)) {
-        const skillDirs = fs.readdirSync(skillsPath, { withFileTypes: true })
+        const skillDirs = fs
+          .readdirSync(skillsPath, { withFileTypes: true })
           .filter((d) => d.isDirectory());
 
         for (const skillDir of skillDirs) {
@@ -357,9 +430,11 @@ async function installProjectScoped(repoRoot, plugins, pluginSourceMap) {
 
       // 1. Fetch agent files
       try {
-        const agentsJson = await httpsGet(`${GITHUB_API}/plugins/${dirName}/agents`);
+        const agentsJson = await httpsGet(
+          `${GITHUB_API}/plugins/${dirName}/agents`,
+        );
         const agentFiles = JSON.parse(agentsJson).filter(
-          (f) => f.type === "file" && f.name.endsWith(".md")
+          (f) => f.type === "file" && f.name.endsWith(".md"),
         );
         for (const file of agentFiles) {
           const content = await httpsGet(file.download_url);
@@ -375,8 +450,13 @@ async function installProjectScoped(repoRoot, plugins, pluginSourceMap) {
 
       // 2. Fetch AGENTS.md for instructions
       try {
-        const content = await httpsGet(`${GITHUB_RAW}/plugins/${dirName}/AGENTS.md`);
-        const instructionFile = path.join(targetInstructions, `${pluginName}.instructions.md`);
+        const content = await httpsGet(
+          `${GITHUB_RAW}/plugins/${dirName}/AGENTS.md`,
+        );
+        const instructionFile = path.join(
+          targetInstructions,
+          `${pluginName}.instructions.md`,
+        );
         const withFrontmatter = `---\napplyTo: "**"\ndescription: "${pluginName} plugin instructions"\n---\n\n${content}`;
         fs.writeFileSync(instructionFile, withFrontmatter);
         instructionCount++;
@@ -386,11 +466,18 @@ async function installProjectScoped(repoRoot, plugins, pluginSourceMap) {
 
       // 3. Fetch skills
       try {
-        const skillsJson = await httpsGet(`${GITHUB_API}/plugins/${dirName}/skills`);
-        const skillDirs = JSON.parse(skillsJson).filter((f) => f.type === "dir");
+        const skillsJson = await httpsGet(
+          `${GITHUB_API}/plugins/${dirName}/skills`,
+        );
+        const skillDirs = JSON.parse(skillsJson).filter(
+          (f) => f.type === "dir",
+        );
         for (const skillDir of skillDirs) {
           const destSkill = path.join(targetSkills, skillDir.name);
-          await fetchDirRecursive(`plugins/${dirName}/skills/${skillDir.name}`, destSkill);
+          await fetchDirRecursive(
+            `plugins/${dirName}/skills/${skillDir.name}`,
+            destSkill,
+          );
           skillCount++;
         }
       } catch {
@@ -427,11 +514,17 @@ async function main() {
   }
 
   if (tools.length === 0 && SCOPE === "user") {
-    fail("Claude Code CLI not found in PATH (required for user-scoped install).");
+    fail(
+      "Claude Code CLI not found in PATH (required for user-scoped install).",
+    );
     console.log("");
     console.log("  Options:");
-    console.log("    Install Claude Code: https://docs.anthropic.com/en/docs/claude-code");
-    console.log("    Or use --scope project for GitHub Copilot (.github/ convention)");
+    console.log(
+      "    Install Claude Code: https://docs.anthropic.com/en/docs/claude-code",
+    );
+    console.log(
+      "    Or use --scope project for GitHub Copilot (.github/ convention)",
+    );
     process.exit(1);
   }
 
@@ -449,11 +542,13 @@ async function main() {
 
     // Check NuGet for a newer version and update if available
     if (hasCommand("dotnet")) {
-      const localVersion = versionMatch ? versionMatch[1].trim().split("+")[0] : null;
+      const localVersion = versionMatch
+        ? versionMatch[1].trim().split("+")[0]
+        : null;
       let latestVersion = null;
       try {
         const nugetJson = await httpsGet(
-          "https://api.nuget.org/v3-flatcontainer/microsoft.powerapps.cli.tool/index.json"
+          "https://api.nuget.org/v3-flatcontainer/microsoft.powerapps.cli.tool/index.json",
         );
         const versions = JSON.parse(nugetJson).versions;
         latestVersion = versions[versions.length - 1];
@@ -464,10 +559,12 @@ async function main() {
       if (latestVersion && localVersion && latestVersion === localVersion) {
         ok("Already on latest version");
       } else if (latestVersion) {
-        info(`Newer version available: ${latestVersion} (installed: ${localVersion || "unknown"})`);
+        info(
+          `Newer version available: ${latestVersion} (installed: ${localVersion || "unknown"})`,
+        );
         info("Updating PAC CLI...");
         const updateResult = run(
-          "dotnet tool update --global Microsoft.PowerApps.CLI.Tool"
+          "dotnet tool update --global Microsoft.PowerApps.CLI.Tool",
         );
         if (updateResult.ok) {
           ok(`Updated to ${latestVersion}`);
@@ -482,11 +579,13 @@ async function main() {
     if (hasCommand("dotnet")) {
       info("Installing PAC CLI via dotnet tool...");
       const installResult = run(
-        "dotnet tool install --global Microsoft.PowerApps.CLI.Tool"
+        "dotnet tool install --global Microsoft.PowerApps.CLI.Tool",
       );
       if (installResult.ok) {
         ok("PAC CLI installed");
-        info("You may need to restart your terminal for the 'pac' command to be available.");
+        info(
+          "You may need to restart your terminal for the 'pac' command to be available.",
+        );
       } else if (installResult.output.includes("already installed")) {
         ok("PAC CLI already installed (not on PATH — restart your terminal)");
       } else {
@@ -497,9 +596,15 @@ async function main() {
       fail("dotnet SDK not found — cannot auto-install PAC CLI");
       console.log("");
       console.log("  Install the PAC CLI manually using one of these methods:");
-      console.log("    .NET Tool (cross-platform)  https://aka.ms/PowerPlatformCLI");
-      console.log("    VS Code Extension           https://aka.ms/PowerPlatformCLI");
-      console.log("    Windows MSI                 https://aka.ms/PowerPlatformCLI");
+      console.log(
+        "    .NET Tool (cross-platform)  https://aka.ms/PowerPlatformCLI",
+      );
+      console.log(
+        "    VS Code Extension           https://aka.ms/PowerPlatformCLI",
+      );
+      console.log(
+        "    Windows MSI                 https://aka.ms/PowerPlatformCLI",
+      );
     }
   }
 
@@ -518,11 +623,13 @@ async function main() {
     if (process.platform === "win32" && hasCommand("winget")) {
       info("Installing Azure CLI via winget...");
       const installResult = run(
-        "winget install -e --id Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements"
+        "winget install -e --id Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements",
       );
       if (installResult.ok) {
         ok("Azure CLI installed");
-        info("You may need to restart your terminal for the 'az' command to be available.");
+        info(
+          "You may need to restart your terminal for the 'az' command to be available.",
+        );
         installed = true;
       } else {
         fail(`Failed to install via winget: ${installResult.output}`);
@@ -542,9 +649,13 @@ async function main() {
       fail("Could not auto-install Azure CLI");
       console.log("");
       console.log("  Install manually using one of these methods:");
-      console.log("    Windows (winget)  winget install -e --id Microsoft.AzureCLI");
+      console.log(
+        "    Windows (winget)  winget install -e --id Microsoft.AzureCLI",
+      );
       console.log("    macOS (Homebrew)  brew install azure-cli");
-      console.log("    Linux (curl)      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash");
+      console.log(
+        "    Linux (curl)      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
+      );
       console.log("    Docs              https://aka.ms/InstallAzureCLI");
     }
   }
@@ -599,7 +710,9 @@ async function main() {
     if (tools.includes("claude")) {
       installClaude(plugins);
     } else {
-      fail("Claude Code CLI not found. User-scoped install requires 'claude' in PATH.");
+      fail(
+        "Claude Code CLI not found. User-scoped install requires 'claude' in PATH.",
+      );
       info("For project-scoped install (GitHub Copilot), use: --scope project");
       process.exit(1);
     }
@@ -614,16 +727,24 @@ async function main() {
     console.log("");
     console.log("  Structure:");
     console.log("    .github/agents/          Agent personas (.agent.md)");
-    console.log("    .github/instructions/    Plugin instructions (.instructions.md)");
-    console.log("    .github/skills/          Skills with workflows (SKILL.md)");
+    console.log(
+      "    .github/instructions/    Plugin instructions (.instructions.md)",
+    );
+    console.log(
+      "    .github/skills/          Skills with workflows (SKILL.md)",
+    );
     console.log("");
     console.log("  Commit .github/ to share with your team.");
     console.log("  VS Code with GitHub Copilot will use these automatically.");
     console.log("");
     console.log("  To uninstall, delete the installed files from .github/.");
   } else {
-    console.log("  Installed at user scope via Claude Code (available in all projects).");
-    console.log("  Plugins will stay current via the marketplace auto-update mechanism.");
+    console.log(
+      "  Installed at user scope via Claude Code (available in all projects).",
+    );
+    console.log(
+      "  Plugins will stay current via the marketplace auto-update mechanism.",
+    );
     console.log("");
     console.log("  To uninstall:");
     for (const p of plugins) {
@@ -634,7 +755,9 @@ async function main() {
   console.log("  Get started:");
   if (SCOPE === "project") {
     console.log("    Open VS Code with GitHub Copilot in this project.");
-    console.log("    Skills are available as slash commands (e.g. /create-code-app).");
+    console.log(
+      "    Skills are available as slash commands (e.g. /create-code-app).",
+    );
   } else {
     console.log("    claude session  ->  /power-pages:create-site");
   }

@@ -11,6 +11,8 @@ This repository is a **plugin marketplace** containing agent plugins for Power P
 **Primary platform:** GitHub Copilot (VS Code) via the `.github/` convention.
 **Also supported:** Claude Code via the plugin marketplace system.
 
+The canonical Open Plugins marketplace manifest lives at `marketplace.json`. The root `.claude-plugin/marketplace.json` and each plugin's `.claude-plugin/plugin.json` remain as compatibility mirrors for existing marketplace subscriptions.
+
 ## Equinor Fork
 
 This repository is a fork of [`microsoft/power-platform-skills`][upstream_github], maintained for Equinor internal use. It is not a neutral mirror — it applies Equinor governance, security standards, and the shared practices of the [Equinor IT professional network][equinor_varia] before any plugin is piloted or published internally.
@@ -50,10 +52,9 @@ The table below summarises every category of change. The review records in [`doc
 | **`.github/instructions/`** | Markdown, documentation, and alignment instruction files | Enforces shared Equinor documentation conventions across all AI-assisted authoring |
 | **`.devcontainer/`** | Dev container with Equinor CA certificates and standard tooling | Ensures consistent, trusted development environments inside Equinor's network |
 | **`plugins/code-apps/`** | <abbr title="Equinor Design System">EDS</abbr> integration guidance, mandatory deploy confirmation, updated development standards | Aligns generated code apps with Equinor Design System and prevents accidental production deploys |
-| **`scripts/install.js`** | Extended to support GitHub Copilot project-scoped installation and Equinor fork URL | Lets teams install into `.github/` for shared team use, not only user-level Claude Code install |
+| **`scripts/install.js`** | Extended to support GitHub Copilot project-scoped installation, Equinor fork URLs, and Open Plugins marketplace resolution | Lets teams install into `.github/` for shared team use while staying compatible with the upstream marketplace layout |
 | **`scripts/validate-plugin-reviews.js`** | New script | CI-validates review records against the JSON schema before any plugin state change merges |
 | **`SECURITY.md`** | Updated to Equinor responsible disclosure contacts | Replaces Microsoft-only disclosure path with Equinor contacts |
-| **`CODE_OF_CONDUCT.md`, `SUPPORT.md`** | Removed | Superseded by Equinor's own conduct and support processes |
 
 ### Plugin publication status
 
@@ -144,7 +145,8 @@ Inside a Claude Code session:
     ```bash
     /plugin install power-pages@power-platform-skills
     /plugin install model-apps@power-platform-skills
-    /plugin install code-apps@power-platform-skills
+    /plugin install mcp-apps@power-platform-skills
+    /plugin install code-apps-preview@power-platform-skills
     /plugin install canvas-apps@power-platform-skills
     ```
 
@@ -167,7 +169,8 @@ The marketplace registry (Claude Code) is stored at `~/.claude/plugins/known_mar
 # Inside a Claude Code session
 /plugin uninstall power-pages
 /plugin uninstall model-apps
-/plugin uninstall code-apps
+/plugin uninstall mcp-apps
+/plugin uninstall code-apps-preview
 /plugin uninstall canvas-apps
 /plugin marketplace remove power-platform-skills
 ```
@@ -185,6 +188,12 @@ Create and deploy Power Pages sites using modern development approaches.
 Build and deploy Power Apps generative pages for model-driven apps.
 
 **Stack**: React + TypeScript + Fluent, deployed via PAC CLI
+
+### [MCP Apps](plugins/mcp-apps/README.md) (`plugins/mcp-apps`)
+
+Generate interactive MCP App widgets for MCP tools.
+
+**Stack**: HTML widgets using the MCP Apps protocol
 
 ### [Code Apps](plugins/code-apps/AGENTS.md) (`plugins/code-apps`)
 
@@ -208,6 +217,7 @@ To develop and test plugins locally, follow these steps:
     ```bash
     claude --plugin-dir /path/to/power-platform-skills/plugins/power-pages
     claude --plugin-dir /path/to/power-platform-skills/plugins/model-apps
+    claude --plugin-dir /path/to/power-platform-skills/plugins/mcp-apps
     claude --plugin-dir /path/to/power-platform-skills/plugins/code-apps
     claude --plugin-dir /path/to/power-platform-skills/plugins/canvas-apps
     ```
@@ -278,31 +288,46 @@ See the [Copilot CLI docs][gh_copilot_cli_docs] for the full reference.
 
 ```text
 power-platform-skills/
+├── marketplace.json          # Open Plugins marketplace manifest (lists all plugins)
 ├── .claude-plugin/
-│   └── marketplace.json      # Marketplace manifest (lists all plugins)
+│   └── marketplace.json      # Legacy marketplace mirror for existing subscriptions
 ├── .claude/
 │   └── settings.json         # Auto-allowed tools (pac, node, dotnet, etc.)
 ├── plugins/
 │   ├── power-pages/          # Power Pages plugin
+│   │   ├── .plugin/
+│   │   │   └── plugin.json
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── commands/
 │   │   ├── shared/
 │   │   └── skills/
 │   ├── model-apps/           # Model Apps plugin
+│   |   ├── .plugin/
+│   │   └── plugin.json
 │   |   ├── .claude-plugin/
 │   │   └── plugin.json
 │   |   ├── commands/
 │   |   ├── skills/
 │   |   ├── shared/           # Shared references + samples
 │   |   └── github/           # GitHub Copilot instructions
+│   ├── mcp-apps/             # MCP Apps widget generator plugin
+│   │   ├── .plugin/
+│   │   │   └── plugin.json
+│   │   ├── references/
+│   │   ├── samples/
+│   │   └── skills/
 │   ├── code-apps/            # Code Apps plugin
+│   │   ├── .plugin/
+│   │   │   └── plugin.json
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── agents/
 │   │   ├── skills/
 │   │   └── shared/           # Shared instructions + references
 │   └── canvas-apps/          # Canvas Apps plugin
+│       ├── .plugin/
+│       │   └── plugin.json
 │       ├── .claude-plugin/
 │       │   └── plugin.json
 │       ├── references/       # Technical + design guides
@@ -310,6 +335,8 @@ power-platform-skills/
 ├── AGENTS.md                 # Development guidelines
 └── README.md
 ```
+
+The `.claude-plugin` files are compatibility mirrors for users who subscribed before the Open Plugins migration. The shared marketplace keeps marketplace-level `owner` and `metadata`, while each plugin entry is intentionally just `name` plus repository-root-relative `source`.
 
 ## Documentation
 

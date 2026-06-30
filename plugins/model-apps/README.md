@@ -7,7 +7,7 @@ Build and deploy generative pages (genux) for Power Apps model-driven apps. This
 ### From the marketplace
 
 ```bash
-/plugin marketplace add microsoft/power-platform-skills
+/plugin marketplace add equinor/power-platform-skills
 /plugin install model-apps@power-platform-skills
 ```
 

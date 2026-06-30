@@ -1,10 +1,10 @@
 # Report Issue
 
-File a bug report on the [power-platform-skills](https://github.com/microsoft/power-platform-skills) GitHub repository. This workflow gathers the required information, presents a full preview, and creates the issue on the user's behalf.
+File a bug report on the [power-platform-skills](https://github.com/equinor/power-platform-skills) GitHub repository. This workflow gathers the required information, presents a full preview, and creates the issue on the user's behalf.
 
 **Initial request:** $ARGUMENTS
 
-> **WARNING:** Before proceeding, inform the user: "This will create an issue on the **public** GitHub repository [microsoft/power-platform-skills](https://github.com/microsoft/power-platform-skills). **Do not include any sensitive information** such as credentials, internal URLs, tenant IDs, customer data, or proprietary code in the bug report."
+> **WARNING:** Before proceeding, inform the user: "This will create an issue on the **public** GitHub repository [equinor/power-platform-skills](https://github.com/equinor/power-platform-skills). **Do not include any sensitive information** such as credentials, internal URLs, tenant IDs, customer data, or proprietary code in the bug report."
 
 ---
 
@@ -178,7 +178,7 @@ Use `AskUserQuestion` to confirm:
 2. Create the issue via `gh`:
 
    ```bash
-   gh issue create --repo microsoft/power-platform-skills --title "[Bug] <short summary>" --label "bug" --label "<plugin-name>" --body "<body>"
+   gh issue create --repo equinor/power-platform-skills --title "[Bug] <short summary>" --label "bug" --label "<plugin-name>" --body "<body>"
    ```
 
    Use a HEREDOC for the body to preserve formatting.

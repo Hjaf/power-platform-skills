@@ -9,7 +9,7 @@ Create and deploy Power Pages code sites using modern frontend frameworks. This 
 ### From the marketplace
 
 ```bash
-/plugin marketplace add microsoft/power-platform-skills
+/plugin marketplace add equinor/power-platform-skills
 /plugin install power-pages@power-platform-skills
 ```
 
@@ -383,7 +383,7 @@ Adds search engine optimization artifacts: `robots.txt`, `sitemap.xml`, and meta
 
 > "Report a bug with the create-site skill"
 
-Collects context about the current session and opens a pre-filled GitHub issue against [microsoft/power-platform-skills](https://github.com/microsoft/power-platform-skills/issues).
+Collects context about the current session and opens a pre-filled GitHub issue against [equinor/power-platform-skills](https://github.com/equinor/power-platform-skills/issues).
 
 - Captures the skill(s) involved and recent error messages
 - Attaches relevant file paths and environment info
